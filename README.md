@@ -6,7 +6,7 @@
 
 - Clone Syntheas Repo
 
-git clone https://github.com/synthetichealth/synthea.git
+git submodule add https://github.com/synthetichealth/synthea.git
 cd synthea
 
 - Execute Tasks, check installation
@@ -74,7 +74,7 @@ CREATE TABLE json_data (
     data JSONB
 );
 COPY json_data (data)
-FROM PROGRAM 'ls test-data/*.json | xargs cat'
+FROM PROGRAM 'ls test-data/*.json'
 WITH (FORMAT text);
 "
 
