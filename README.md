@@ -2,18 +2,18 @@
 
 ## Synthea Setup & Configuration
 
--- Must have Java 11 or newer
+Must have Java 11 or newer
 
-- Clone Syntheas Repo
+### Clone Syntheas Repo
 
 git submodule add https://github.com/synthetichealth/synthea.git
 cd synthea
 
-- Execute Tasks, check installation
+### Execute Tasks, check installation
 
 ./gradlew build check test
 
-- Generate Data
+### Generate Data
 
 ./run_synthea (MAC)
 
@@ -37,7 +37,7 @@ cd synthea
 
 [state [city]]
 
-- Examples
+### Examples
 
 ./run_synthea Massachusetts
 
@@ -53,7 +53,7 @@ cd synthea
 
 ./run_synthea -s 21 -p 100 Utah "Salt Lake City"
 
-- Configuring FHIR
+### Configuring FHIR
 
 In the Synthea directory, one can choose which FHIR data gets exported by modifying the synthea.properties file located at synthea/src/main/resources/synthea.properties
 
@@ -64,7 +64,7 @@ exporter.practitioner.fhir.export = false
 
 ** Generated test data is located at synthea/output/fhir **
 
-- Move generated data to test-data folder, might need to play around with filepaths
+### Move generated data to test-data folder, might need to play around with filepaths
 
 mv -v ~/Desktop/sql_on_fhir_research/synthea/output/fhir/* ~/Desktop/sql_on_fhir_research/test-data
 
@@ -72,17 +72,17 @@ mv -v ~/Desktop/sql_on_fhir_research/synthea/output/fhir/* ~/Desktop/sql_on_fhir
 
 brew install postgresql
 
-- Start and Stop server
+### Start and Stop server
 
 brew services start postgresql
 
 brew services stop postgresql
 
-- Use server 
+### Use server 
 
 psql postgres
 
-- Load test data into database
+### Load test data into database
 
 "
 CREATE TABLE json_data (
@@ -99,6 +99,6 @@ WITH (FORMAT text);
 
 brew install duckdb
 
-- Use server
+### Use server
 
 duckdb
