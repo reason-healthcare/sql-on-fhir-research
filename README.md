@@ -16,26 +16,41 @@ cd synthea
 - Generate Data
 
 ./run_synthea (MAC)
+
 .\run_synthea.bat (WINDOWS)
 
 [-h]
+
 [-s seed] 
+
 [-cs clinician seed]
+
 [-p populationSize]
+
 [-g gender]
+
 [-a minAge-maxAge]
+
 [-c localConfigFilePath]
+
 [-d localModulesDirPath]
+
 [state [city]]
 
 - Examples
 
 ./run_synthea Massachusetts
+
 ./run_synthea Alaska Juneau
+
 ./run_synthea -s 12345
+
 ./run_synthea -p 1000
+
 ./run_synthea -a 30-40 
+
 ./run_synthea -g F
+
 ./run_synthea -s 21 -p 100 Utah "Salt Lake City"
 
 - Configuring FHIR
@@ -60,6 +75,7 @@ brew install postgresql
 - Start and Stop server
 
 brew services start postgresql
+
 brew services stop postgresql
 
 - Use server 
@@ -73,6 +89,7 @@ CREATE TABLE json_data (
     id SERIAL PRIMARY KEY,
     data JSONB
 );
+
 COPY json_data (data)
 FROM PROGRAM 'ls test-data/*.json'
 WITH (FORMAT text);
