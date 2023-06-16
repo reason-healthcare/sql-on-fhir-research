@@ -1,7 +1,7 @@
 Can specify arbitrary type of observation (laboratory, survey, etc)
 Can specify loinc code
 
-```
+```json
 {
   "name": "observation_identifiers",
   "from": "Observation",
