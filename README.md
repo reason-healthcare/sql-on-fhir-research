@@ -11,7 +11,7 @@ Install Synthea
 Copy from fhir output to local directory test data
 
 ```
-cp ~/synthea/output/fhir/ ~/sql_on_fhir_research/test-data
+cp /path/to/synthea/output/fhir/ ./test-data
 ```
 
 Run zsh script to remove narrative
