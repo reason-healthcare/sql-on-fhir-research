@@ -1,6 +1,7 @@
 Can specify arbitrary type of observation (laboratory, survey, etc)
 Can specify loinc code
 
+```
 {
   "name": "observation_identifiers",
   "from": "Observation",
@@ -17,4 +18,4 @@ Can specify loinc code
     } 
   ]
 }
-
+```
