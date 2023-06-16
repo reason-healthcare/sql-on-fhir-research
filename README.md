@@ -48,7 +48,7 @@ CREATE TABLE patients (
   content JSONB NOT NULL
 );
 
-\copy fhir(patients) from '/Users/user/Desktop/sql_on_fhir_research/test-data/Patient.ndjson'
+\copy fhir(patients) from './test-data/Patient.ndjson'
 ```
 
 ## Install DuckDB
