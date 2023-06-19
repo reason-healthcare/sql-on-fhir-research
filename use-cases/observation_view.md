@@ -126,10 +126,12 @@ Can specify loinc code
 
 ANSI standard query
 
-```json
-select hema.patient, hemo.hemo_value, hema.hema_value
+```
+select distinct hema.patient, hemo.hemo_value, hema.hema_value, hemo.hemo_date, hema.hema_date
 from views.hematocrit_observation as hema 
 join views.hemoglobin_observation as hemo
 on hema.patient = hemo.patient
 where hema.hema_value < 40 and hemo.hemo_value < 14
+order by hema.hema_date desc, hemo.hemo_date desc
+
 ```
