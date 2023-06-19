@@ -55,12 +55,13 @@ Can specify loinc code
    "code.coding.where(system='http://loinc.org' and code = '4544-3')"}],
  :select
  [{:expr "id", :name "id"}
-  {:expr "effectiveDateTime", :name "date"}
+  {:expr "effectiveDateTime", :name "hema_date"}
   {:expr "code.coding.display", :name "observation"}
   {:expr "category.coding.code", :name "category"}
   {:expr "code.coding.code", :name "code"}
   {:expr "subject.reference", :name "patient"}
   {:expr "valueQuantity.value", :name "hema_value", :type "numeric"}]}
+
 
 
 
@@ -115,12 +116,12 @@ Can specify loinc code
    "code.coding.where(system='http://loinc.org' and code = '718-7')"}],
  :select
  [{:expr "id", :name "id"}
-  {:expr "effectiveDateTime", :name "date"}
+  {:expr "effectiveDateTime", :name "hemo_date"}
   {:expr "code.coding.display", :name "observation"}
   {:expr "category.coding.code", :name "category"}
   {:expr "code.coding.code", :name "code"}
   {:expr "subject.reference", :name "patient"}
-  {:expr "valueQuantity.value", :name "hema_value", :type "numeric"}]}
+  {:expr "valueQuantity.value", :name "hemo_value", :type "numeric"}]}
 
 ```
 
