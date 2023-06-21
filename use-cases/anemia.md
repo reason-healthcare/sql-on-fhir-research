@@ -144,12 +144,20 @@ Nikolai's Syntax
 ANSI standard query
 
 ```
-SELECT distinct hema.patient, hemo.hemo_value, hema.hema_value, hemo.hemo_date, hema.hema_date
-FROM views.hematocrit_observation AS hema 
-JOIN views.hemoglobin_observation AS hemo
-ON hema.patient = hemo.patient
-WHERE hema.hema_value < 40 AND hemo.hemo_value < 14
-ORDER BY hema.hema_date desc, hemo.hemo_date desc
+SELECT
+  distinct hema.patient, hemo.hemo_value, hema.hema_value, hemo.hemo_date, hema.hema_date
+FROM 
+  views.hematocrit_observation AS hema 
+JOIN 
+  views.hemoglobin_observation AS hemo
+ON 
+  hema.patient = hemo.patient
+WHERE 
+    hema.hema_value < 40 
+  AND 
+    hemo.hemo_value < 14
+ORDER BY 
+  hema.hema_date desc, hemo.hemo_date desc
 
 ```
 
