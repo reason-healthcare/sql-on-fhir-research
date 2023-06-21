@@ -43,12 +43,12 @@ psql postgres
 ### Load test data into database
 
 ```
-CREATE TABLE patients (
+CREATE TABLE data (
   id SERIAL PRIMARY KEY,
   content JSONB NOT NULL
 );
 
-\copy fhir(patients) from './test-data/Patient.ndjson'
+\copy fhir(content) from './test-data/xxxxxxx.ndjson'
 ```
 
 ## Install DuckDB
