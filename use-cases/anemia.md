@@ -154,9 +154,10 @@ ORDER BY hema.hema_date desc, hemo.hemo_date desc
 ```
 
 Postgres query
-```
 
 -- Create a new tables to hold the extracted data
+
+```
 CREATE TABLE hemo (
     id text,
     effective_date_time text,
@@ -176,34 +177,35 @@ CREATE TABLE hema (
     subject_reference text,
     value_quantity_value text
 );
-
+```
 -- Insert Nested JSON data into tables
-INSERT INTO hemo (id, effective_date_time, code_coding_display, code_coding_code, category_coding_code, subject_reference, value_quantity_value)
+```
+INSERT INTO hemo (id, effective_date_time, code_coding_display, code_coding_code, subject_reference, value_quantity_value)
 SELECT
     content ->> 'id',
     content ->> 'effectiveDateTime',
     (content -> 'code' -> 'coding' -> 0 ->> 'display'),
     (content -> 'code' -> 'coding' -> 0 ->> 'code'),
-    (content -> 'category' -> 0 -> 'coding' -> 0 ->> 'code'),
     (content -> 'subject' ->> 'reference'),
     (content -> 'valueQuantity' ->> 'value')
 FROM data
 WHERE (content -> 'code' -> 'coding' -> 0 ->> 'code') = '718-7';
 
-INSERT INTO hema (id, effective_date_time, code_coding_display, code_coding_code, category_coding_code, subject_reference, value_quantity_value)
+INSERT INTO hema (id, effective_date_time, code_coding_display, code_coding_code, subject_reference, value_quantity_value)
 SELECT
     content ->> 'id',
     content ->> 'effectiveDateTime',
     (content -> 'code' -> 'coding' -> 0 ->> 'display'),
     (content -> 'code' -> 'coding' -> 0 ->> 'code'),
-    (content -> 'category' -> 0 -> 'coding' -> 0 ->> 'code'),
     (content -> 'subject' ->> 'reference'),
     (content -> 'valueQuantity' ->> 'value')
 FROM data
 WHERE (content -> 'code' -> 'coding' -> 0 ->> 'code') = '4544-3';
-
+```
 
 -- Joined & Filtered Query
+
+```
 SELECT
     t1.id,
     t1.subject_reference,
@@ -224,4 +226,72 @@ WHERE
     t2.value_quantity_value::numeric < 40;
 ```
 
+DuckDB Query
 
+```
+
+CREATE TABLE data AS SELECT * FROM './test-data/Observation-no-narrative.ndjson';
+
+CREATE TABLE hemo (
+    id VARCHAR,
+    effective_date_time VARCHAR,
+    code_coding_display VARCHAR,
+    subject_reference VARCHAR,
+    value_quantity_value NUMERIC
+);
+
+CREATE TABLE hema (
+    id VARCHAR,
+    effective_date_time VARCHAR,
+    code_coding_display VARCHAR,
+    subject_reference VARCHAR,
+    value_quantity_value NUMERIC
+);
+```
+
+-- Insert statements
+
+```
+INSERT INTO hemo (id, effective_date_time, code_coding_display, subject_reference,value_quantity_value)
+SELECT
+    id,   
+    effectiveDateTime AS effective_date_time,
+    code->'coding'->0->>'display' AS code_coding_display,
+    subject->>'reference' AS subject_reference,
+    (valueQuantity->>'value')::numeric as value_quantity_value
+FROM data
+WHERE code->'coding'->0->>'code' = '718-7';
+
+INSERT INTO hema (id, effective_date_time, code_coding_display, subject_reference, value_quantity_value)
+SELECT
+    id,
+    effectiveDateTime AS effective_date_time,
+    code->'coding'->0->>'display' AS code_coding_display,
+    subject->>'reference' AS subject_reference,
+    (valueQuantity->>'value')::numeric as value_quantity_value
+FROM data
+WHERE code->'coding'->0->>'code' = '4544-3';
+```
+
+-- Join statement
+
+```
+SELECT
+    t1.id,
+    t1.subject_reference,
+    t1.effective_date_time,
+    t1.code_coding_display,
+    t1.value_quantity_value,
+    t2.code_coding_display,
+    t2.value_quantity_value
+FROM
+    hemo AS t1
+JOIN
+    hema AS t2
+ON
+    t1.subject_reference = t2.subject_reference
+WHERE
+    t1.value_quantity_value < 14
+    AND
+    t2.value_quantity_value < 40;
+```

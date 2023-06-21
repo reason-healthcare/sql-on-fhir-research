@@ -62,4 +62,3 @@ brew install duckdb
 ```
 duckdb
 ```
-## Flattened View Template
