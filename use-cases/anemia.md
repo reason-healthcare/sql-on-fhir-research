@@ -155,9 +155,16 @@ ORDER BY hema.hema_date desc, hemo.hemo_date desc
 
 Postgres query
 
--- Create a new tables to hold the extracted data
+-- Create a new table to hold the extracted data
 
 ```
+CREATE TABLE data (
+  id SERIAL PRIMARY KEY,
+  content JSONB NOT NULL
+);
+
+\copy fhir(content) from './test-data/xxxxxxx.ndjson'
+
 CREATE TABLE hemo (
     id text,
     effective_date_time text,

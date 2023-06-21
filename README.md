@@ -40,17 +40,6 @@ brew services stop postgresql
 psql postgres
 ```
 
-### Load test data into database
-
-```
-CREATE TABLE data (
-  id SERIAL PRIMARY KEY,
-  content JSONB NOT NULL
-);
-
-\copy fhir(content) from './test-data/xxxxxxx.ndjson'
-```
-
 ## Install DuckDB
 
 ```
