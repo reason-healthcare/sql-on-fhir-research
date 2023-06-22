@@ -1,11 +1,12 @@
-## This use case demonstrates a join between two view definitions that screens patients for potential anemic conditions. Two separate tables are constructed and then joined on patient ID. 
+## This use case demonstrates a join between two view definitions that screens patients for potential anemic conditions. Two separate views are constructed and then joined on patient ID. 
 
 These Definitons have been written to two standards : Nikolai's (http://142.132.196.32:7777) and Josh's (https://joshuamandel.com/fhir-view-to-array/)
 
 
-Josh's Syntax
+Josh's Syntax (JSON)
 
 ```json
+
 {
   "name": "hematocrit_observation",
   "from": "Observation",
@@ -22,6 +23,14 @@ Josh's Syntax
       "name": "id",
       "expr": "id"
     },
+    {
+      "name": "subject_type",
+      "expr": "subject.reference.split('/')[0]"
+    },
+    {
+      "name": "subject_id",
+      "expr": "subject.reference.split('/')[1]"
+    },
     { 
       "name" : "date",
       "expr" : "effectiveDateTime"
@@ -49,7 +58,9 @@ Josh's Syntax
     }
   ]
 }
+```
 
+```json
 {
   "name": "hemoglobin_observation",
   "from": "Observation",
@@ -66,6 +77,14 @@ Josh's Syntax
       "name": "id",
       "expr": "id"
     },
+    {
+      "name": "subject_type",
+      "expr": "subject.reference.split('/')[0]"
+    },
+    {
+      "name": "subject_id",
+      "expr": "subject.reference.split('/')[1]"
+    },
     { 
       "name" : "date",
       "expr" : "effectiveDateTime"
@@ -93,12 +112,10 @@ Josh's Syntax
     }
   ]
 }
-
 ```
 
-Nikolai's Syntax
-
-```
+Nikolai's Syntax (Clojure-like)
+```clojure
 {
  :id "hematocrit_observation",
  :from "Observation",
@@ -113,11 +130,11 @@ Nikolai's Syntax
     {:expr "code.coding.display", :name "observation"}
     {:expr "category.coding.code", :name "category"}
     {:expr "code.coding.code", :name "code"}
-    {:expr "subject.reference", :name "patient"}
+    {:expr "subject.reference.split('/')[0]", :name "subject_type"}
+    {:expr "subject.reference.split('/')[1]", :name "subject_id"}
     {:expr "valueQuantity.value", :name "hema_value", :type "numeric"}
   ]
 }
-
 
 {
  :id "hemoglobin_observation",
@@ -133,7 +150,8 @@ Nikolai's Syntax
     {:expr "code.coding.display", :name "observation"}
     {:expr "category.coding.code", :name "category"}
     {:expr "code.coding.code", :name "code"}
-    {:expr "subject.reference", :name "patient"}
+    {:expr "subject.reference.split('/')[0]", :name "subject_type"}
+    {:expr "subject.reference.split('/')[1]", :name "subject_id"}
     {:expr "valueQuantity.value", :name "hemo_value", :type "numeric"}
   ]
 }
@@ -141,162 +159,145 @@ Nikolai's Syntax
 
 ANSI standard query
 
-```
+```sql
 SELECT
-  distinct hema.patient, hemo.hemo_value, hema.hema_value, hemo.hemo_date, hema.hema_date
-FROM 
-  views.hematocrit_observation AS hema 
-JOIN 
-  views.hemoglobin_observation AS hemo
-ON 
-  hema.patient = hemo.patient
-WHERE 
-    hema.hema_value < 40 
-  AND 
-    hemo.hemo_value < 14
-ORDER BY 
-  hema.hema_date desc, hemo.hemo_date desc
+  hema.subject_id,
+  hemo.hemo_value,
+  hema.hema_value,
+  hemo.hemo_date,
+  hema.hema_date
+FROM
+  views.hematocrit_observation AS hema
+  JOIN views.hemoglobin_observation AS hemo ON hema.subject_id = hemo.subject_id
+WHERE
+  hema.subject_type = 'Patient'
+  AND hemo.subject_type = 'Patient'
+  AND hema.hema_value < 40
+  AND hemo.hemo_value < 14
+ORDER BY
+  hema.hema_date desc,
+  hemo.hemo_date desc;
 ```
 
 Postgres query
 
 -- Create a new table to hold the extracted data
 
-```
-CREATE TABLE data (
+```sql
+-- Setup an observations table and load ndjson
+CREATE TABLE observations (
   id SERIAL PRIMARY KEY,
   content JSONB NOT NULL
 );
 
-\copy data(content) from './test-data/xxxxxxx.ndjson'
+\copy observations(content) from './test-data/xxxxxxx.ndjson'
 
-CREATE TABLE hemo (
-    id text,
-    effective_date_time text,
-    code_coding_display text,
-    code_coding_code text,
-    subject_reference text,
-    value_quantity_value text
-);
+-- Setup the hemo view, manually converted from the above view definiton
+DROP VIEW IF EXISTS hemo;
 
-CREATE TABLE hema (
-    id text,
-    effective_date_time text,
-    code_coding_display text,
-    code_coding_code text,
-    subject_reference text,
-    value_quantity_value text
-);
-```
--- Insert Nested JSON data into tables
-```
-INSERT INTO hemo (id, effective_date_time, code_coding_display, code_coding_code, subject_reference, value_quantity_value)
+CREATE VIEW hemo AS
 SELECT
-    content ->> 'id',
-    content ->> 'effectiveDateTime',
-    (content -> 'code' -> 'coding' -> 0 ->> 'display'),
-    (content -> 'code' -> 'coding' -> 0 ->> 'code'),
-    (content -> 'subject' ->> 'reference'),
-    (content -> 'valueQuantity' ->> 'value')
-FROM data
+  content -> 'id' AS id,
+  content -> 'effectiveDateTime' AS effectiveDateTime,
+  (content -> 'code' -> 'coding' -> 0 ->> 'display') AS code_display,
+  (content -> 'code' -> 'coding' -> 0 ->> 'code') AS code_code,
+  SPLIT_PART((content -> 'subject' ->> 'reference') :: TEXT, '/', 1) AS subject_type,
+  SPLIT_PART((content -> 'subject' ->> 'reference') :: TEXT, '/', 2) AS subject_id,
+  (content -> 'valueQuantity' ->> 'value') as quantity_value
+FROM observations
 WHERE (content -> 'code' -> 'coding' -> 0 ->> 'code') = '718-7';
 
-INSERT INTO hema (id, effective_date_time, code_coding_display, code_coding_code, subject_reference, value_quantity_value)
+DROP VIEW IF EXISTS hema;
+
+CREATE VIEW hema AS
 SELECT
-    content ->> 'id',
-    content ->> 'effectiveDateTime',
-    (content -> 'code' -> 'coding' -> 0 ->> 'display'),
-    (content -> 'code' -> 'coding' -> 0 ->> 'code'),
-    (content -> 'subject' ->> 'reference'),
-    (content -> 'valueQuantity' ->> 'value')
-FROM data
+  content -> 'id' AS id,
+  content -> 'effectiveDateTime' AS effectiveDateTime,
+  (content -> 'code' -> 'coding' -> 0 ->> 'display') AS code_display,
+  (content -> 'code' -> 'coding' -> 0 ->> 'code') AS code_code,
+  SPLIT_PART((content -> 'subject' ->> 'reference') :: TEXT, '/', 1) AS subject_type,
+  SPLIT_PART((content -> 'subject' ->> 'reference') :: TEXT, '/', 2) AS subject_id,
+  (content -> 'valueQuantity' ->> 'value') as quantity_value
+FROM observations
 WHERE (content -> 'code' -> 'coding' -> 0 ->> 'code') = '4544-3';
 ```
 
 -- Joined & Filtered Query
 
-```
+```sql
 SELECT
     t1.id,
-    t1.subject_reference,
-    t1.effective_date_time,
-    t1.code_coding_display,
-    t1.value_quantity_value,
-    t2.code_coding_display,
-    t2.value_quantity_value,
-    t2.effective_date_time
+    t1.subject_id,
+    t1.subject_type,
+    t1.effectiveDateTime,
+    t1.code_display,
+    t1.quantity_value,
+    t2.code_display,
+    t2.quantity_value,
+    t2.subject_id,
+    t2.subject_type,
+    t2.effectiveDateTime
 FROM
     hemo AS t1
 JOIN
     hema AS t2
 ON
-    t1.subject_reference = t2.subject_reference
+    t1.subject_id = t2.subject_id
 WHERE
-    t1.value_quantity_value::numeric < 14 
+    t1.quantity_value::numeric < 14 
     AND
-    t2.value_quantity_value::numeric < 40
+    t2.quantity_value::numeric < 40
 ORDER BY
-    t2.effective_date_time DESC, t1.effective_date_time DESC;
+    t2.effectiveDateTime DESC, t1.effectiveDateTime DESC;
 ```
 
 DuckDB Query
 
-```
-CREATE TABLE data AS SELECT * FROM './test-data/Observation-no-narrative.ndjson';
+```sql
+CREATE TABLE observations AS SELECT * FROM './test-data/Observation-no-narrative.ndjson';
 
-CREATE TABLE hemo (
-    id VARCHAR,
-    effective_date_time VARCHAR,
-    code_coding_display VARCHAR,
-    subject_reference VARCHAR,
-    value_quantity_value NUMERIC
-);
 
-CREATE TABLE hema (
-    id VARCHAR,
-    effective_date_time VARCHAR,
-    code_coding_display VARCHAR,
-    subject_reference VARCHAR,
-    value_quantity_value NUMERIC
-);
-```
+DROP VIEW IF EXISTS hemo;
 
--- Insert statements
-
-```
-INSERT INTO hemo (id, effective_date_time, code_coding_display, subject_reference,value_quantity_value)
-SELECT
-    id,   
-    effectiveDateTime AS effective_date_time,
-    code->'coding'->0->>'display' AS code_coding_display,
-    subject->>'reference' AS subject_reference,
-    (valueQuantity->>'value')::numeric as value_quantity_value
-FROM data
+CREATE VIEW hemo AS
+SELECT 
+    id::VARCHAR AS id,   
+    effectiveDateTime::DATETIME AS effectiveDateTime ,
+    code->'coding'->0->>'display'::VARCHAR AS code_display,
+    subject->>'reference'::VARCHAR AS subject_reference,
+    SPLIT_PART((subject ->> 'reference') :: TEXT, '/', 1) AS subject_type,
+    SPLIT_PART((subject ->> 'reference') :: TEXT, '/', 2) AS subject_id,
+    (valueQuantity->>'value')::NUMERIC AS valueQuantity_value
+FROM observations
 WHERE code->'coding'->0->>'code' = '718-7';
 
-INSERT INTO hema (id, effective_date_time, code_coding_display, subject_reference, value_quantity_value)
-SELECT
-    id,
-    effectiveDateTime AS effective_date_time,
-    code->'coding'->0->>'display' AS code_coding_display,
-    subject->>'reference' AS subject_reference,
-    (valueQuantity->>'value')::numeric as value_quantity_value
-FROM data
+DROP VIEW IF EXISTS hema;
+
+CREATE VIEW hema AS
+SELECT 
+    id::VARCHAR AS id,   
+    effectiveDateTime::DATETIME AS effectiveDateTime ,
+    code->'coding'->0->>'display'::VARCHAR AS code_display,
+    subject->>'reference'::VARCHAR AS subject_reference,
+    SPLIT_PART((subject ->> 'reference') :: TEXT, '/', 1) AS subject_type,
+    SPLIT_PART((subject ->> 'reference') :: TEXT, '/', 2) AS subject_id,
+    (valueQuantity->>'value')::NUMERIC AS valueQuantity_value  
+FROM observations
 WHERE code->'coding'->0->>'code' = '4544-3';
 ```
 
 -- Join statement
 
-```
+```sql
 SELECT
     t1.id,
     t1.subject_reference,
-    t1.effective_date_time,
-    t1.code_coding_display,
-    t1.value_quantity_value,
-    t2.code_coding_display,
-    t2.value_quantity_value,
-    t2.effective_date_time
+    t1.effectiveDateTime,
+    t1.code_display,
+    t1.valueQuantity_value,
+    t2.code_display,
+    t2.valueQuantity_value,
+    t2.effectiveDateTime
 FROM
     hemo AS t1
 JOIN
@@ -304,9 +305,9 @@ JOIN
 ON
     t1.subject_reference = t2.subject_reference
 WHERE
-    t1.value_quantity_value < 14
+    t1.valueQuantity_value < 14
     AND
-    t2.value_quantity_value < 40
+    t2.valueQuantity_value < 40
 ORDER BY
-    t1.effective_date_time DESC, t2.effective_date_time DESC;
+    t1.effectiveDateTime DESC, t2.effectiveDateTime DESC;
 ```
