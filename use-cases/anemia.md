@@ -171,7 +171,7 @@ CREATE TABLE data (
   content JSONB NOT NULL
 );
 
-\copy fhir(content) from './test-data/xxxxxxx.ndjson'
+\copy data(content) from './test-data/xxxxxxx.ndjson'
 
 CREATE TABLE hemo (
     id text,
@@ -228,7 +228,8 @@ SELECT
     t1.code_coding_display,
     t1.value_quantity_value,
     t2.code_coding_display,
-    t2.value_quantity_value
+    t2.value_quantity_value,
+    t2.effective_date_time
 FROM
     hemo AS t1
 JOIN
@@ -238,7 +239,11 @@ ON
 WHERE
     t1.value_quantity_value::numeric < 14 
     AND
-    t2.value_quantity_value::numeric < 40;
+    t2.value_quantity_value::numeric < 40
+ORDER BY
+    t2.effective_date_time, t1.effective_date_time;
+
+
 ```
 
 DuckDB Query
@@ -298,7 +303,8 @@ SELECT
     t1.code_coding_display,
     t1.value_quantity_value,
     t2.code_coding_display,
-    t2.value_quantity_value
+    t2.value_quantity_value,
+    t2.effective_date_time
 FROM
     hemo AS t1
 JOIN
@@ -308,5 +314,9 @@ ON
 WHERE
     t1.value_quantity_value < 14
     AND
-    t2.value_quantity_value < 40;
+    t2.value_quantity_value < 40
+ORDER BY
+    t1.effective_date_time, t2.effective_date_time;
+
+
 ```
