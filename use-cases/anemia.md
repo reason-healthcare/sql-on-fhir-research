@@ -178,7 +178,6 @@ CREATE TABLE hemo (
     effective_date_time text,
     code_coding_display text,
     code_coding_code text,
-    category_coding_code text,
     subject_reference text,
     value_quantity_value text
 );
@@ -188,7 +187,6 @@ CREATE TABLE hema (
     effective_date_time text,
     code_coding_display text,
     code_coding_code text,
-    category_coding_code text,
     subject_reference text,
     value_quantity_value text
 );
@@ -241,7 +239,7 @@ WHERE
     AND
     t2.value_quantity_value::numeric < 40
 ORDER BY
-    t2.effective_date_time, t1.effective_date_time;
+    t2.effective_date_time DESC, t1.effective_date_time DESC;
 
 
 ```
@@ -316,7 +314,7 @@ WHERE
     AND
     t2.value_quantity_value < 40
 ORDER BY
-    t1.effective_date_time, t2.effective_date_time;
+    t1.effective_date_time DESC, t2.effective_date_time DESC;
 
 
 ```
