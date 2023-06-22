@@ -94,7 +94,6 @@ Josh's Syntax
   ]
 }
 
-
 ```
 
 Nikolai's Syntax
@@ -138,7 +137,6 @@ Nikolai's Syntax
     {:expr "valueQuantity.value", :name "hemo_value", :type "numeric"}
   ]
 }
-
 ```
 
 ANSI standard query
@@ -158,7 +156,6 @@ WHERE
     hemo.hemo_value < 14
 ORDER BY 
   hema.hema_date desc, hemo.hemo_date desc
-
 ```
 
 Postgres query
@@ -240,14 +237,11 @@ WHERE
     t2.value_quantity_value::numeric < 40
 ORDER BY
     t2.effective_date_time DESC, t1.effective_date_time DESC;
-
-
 ```
 
 DuckDB Query
 
 ```
-
 CREATE TABLE data AS SELECT * FROM './test-data/Observation-no-narrative.ndjson';
 
 CREATE TABLE hemo (
@@ -315,6 +309,4 @@ WHERE
     t2.value_quantity_value < 40
 ORDER BY
     t1.effective_date_time DESC, t2.effective_date_time DESC;
-
-
 ```
