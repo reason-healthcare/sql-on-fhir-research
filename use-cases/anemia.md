@@ -303,11 +303,15 @@ FROM
 JOIN
     hema AS t2
 ON
-    t1.subject_reference = t2.subject_reference
+    t1.subject_id = t2.subject_id
 WHERE
     t1.valueQuantity_value < 14
     AND
     t2.valueQuantity_value < 40
+    AND
+    t1.subject_type = 'Patient'
+    AND
+    t2.subject_type = 'Patient'
 ORDER BY
     t1.effectiveDateTime DESC, t2.effectiveDateTime DESC;
 ```
