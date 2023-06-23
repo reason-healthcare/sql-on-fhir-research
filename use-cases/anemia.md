@@ -190,7 +190,7 @@ CREATE TABLE observations (
   content JSONB NOT NULL
 );
 
-\copy observations(content) from './test-data/xxxxxxx.ndjson'
+\copy observations(content) from './test-data/Observation-no-narrative.ndjson'
 
 -- Setup the hemo view, manually converted from the above view definiton
 DROP VIEW IF EXISTS hemo;
