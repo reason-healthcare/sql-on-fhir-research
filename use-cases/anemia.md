@@ -118,7 +118,8 @@ Nikolai's Syntax (Clojure-like)
  :select
   [
     {:expr "id", :name "id"}
-    {:expr "effectiveDateTime", :name "hema_date"}
+    {:expr "effectiveDateTime", :name "hema_start"}
+    {:expr "effectiveDateTime", :name "hema_end"}
     {:expr "code.coding.display", :name "observation"}
     {:expr "category.coding.code", :name "category"}
     {:expr "code.coding.code", :name "code"}
@@ -137,7 +138,8 @@ Nikolai's Syntax (Clojure-like)
  :select
   [
     {:expr "id", :name "id"}
-    {:expr "effectiveDateTime", :name "hemo_date"}
+    {:expr "effectiveDateTime", :name "hemo_start"}
+    {:expr "effectiveDateTime", :name "hemo_end"}
     {:expr "code.coding.display", :name "observation"}
     {:expr "category.coding.code", :name "category"}
     {:expr "code.coding.code", :name "code"}
@@ -154,19 +156,22 @@ SELECT
   hema.subject_id,
   hemo.hemo_value,
   hema.hema_value,
-  hemo.hemo_date,
-  hema.hema_date
-FROM
+  hemo.hemo_end,
+  hema.hema_end
+FROM 
   views.hematocrit_observation AS hema
-  JOIN views.hemoglobin_observation AS hemo ON hema.subject_id = hemo.subject_id
+JOIN 
+  views.hemoglobin_observation AS hemo 
+ON 
+  hema.subject_id = hemo.subject_id
 WHERE
-  hema.subject_type = 'Patient'
-  AND hemo.subject_type = 'Patient'
-  AND hema.hema_value < 40
+  hema.hema_value < 40
   AND hemo.hemo_value < 14
+  AND DATE_PART('year', DATE(hemo_end)) > 2015
+  AND DATE_PART('year', DATE(hema_end)) > 2015
 ORDER BY
-  hema.hema_date desc,
-  hemo.hemo_date desc;
+  hema.hema_end desc,
+  hemo.hemo_end desc;
 ```
 
 Postgres query
