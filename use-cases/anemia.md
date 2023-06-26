@@ -24,12 +24,8 @@ Josh's Syntax (JSON)
       "expr": "id"
     },
     {
-      "name": "subject_type",
-      "expr": "subject.reference.split('/')[0]"
-    },
-    {
       "name": "subject_id",
-      "expr": "subject.reference.split('/')[1]"
+      "expr": "subject.getId()"
     },
     { 
       "name" : "date",
@@ -78,12 +74,8 @@ Josh's Syntax (JSON)
       "expr": "id"
     },
     {
-      "name": "subject_type",
-      "expr": "subject.reference.split('/')[0]"
-    },
-    {
       "name": "subject_id",
-      "expr": "subject.reference.split('/')[1]"
+      "expr": "subject.getId()"
     },
     { 
       "name" : "date",
@@ -130,8 +122,7 @@ Nikolai's Syntax (Clojure-like)
     {:expr "code.coding.display", :name "observation"}
     {:expr "category.coding.code", :name "category"}
     {:expr "code.coding.code", :name "code"}
-    {:expr "subject.reference.split('/')[0]", :name "subject_type"}
-    {:expr "subject.reference.split('/')[1]", :name "subject_id"}
+    {:expr "subject.getId()", :name "subject_id"}
     {:expr "valueQuantity.value", :name "hema_value", :type "numeric"}
   ]
 }
@@ -150,8 +141,7 @@ Nikolai's Syntax (Clojure-like)
     {:expr "code.coding.display", :name "observation"}
     {:expr "category.coding.code", :name "category"}
     {:expr "code.coding.code", :name "code"}
-    {:expr "subject.reference.split('/')[0]", :name "subject_type"}
-    {:expr "subject.reference.split('/')[1]", :name "subject_id"}
+    {:expr "subject.getId()", :name "subject_id"}
     {:expr "valueQuantity.value", :name "hemo_value", :type "numeric"}
   ]
 }
