@@ -13,7 +13,7 @@ These Definitons have been written to two standards : Nikolai's (http://142.132.
     { "from" : "valueQuantity.where(unit='lbs')",
       "select" : [
          {"name" : "lbs" , "expr" : "value"},
-         {"name" : "lbs_to_kg", "expr" : "value * %lbs_to_kg"}
+         {"name" : "kg", "expr" : "value * %lbs_to_kg"}
       ]
     }
   ]
@@ -29,4 +29,9 @@ Adding this after the nested select breaks this view
          {"name" : "lbs", "expr" : "value * %kg_to_lbs"}
       ]
     }
+```
+
+also this constant is added 
+```json
+{"name": "kg_to_lbs" , "value" : 2.20462}
 ```
