@@ -28,7 +28,11 @@ Josh's Syntax (JSON)
       "expr": "subject.getId()"
     },
     { 
-      "name" : "date",
+      "name" : "hema_start",
+      "expr" : "effectiveDateTime"
+    },
+    { 
+      "name" : "hema_end",
       "expr" : "effectiveDateTime"
     },
     { 
@@ -78,7 +82,11 @@ Josh's Syntax (JSON)
       "expr": "subject.getId()"
     },
     { 
-      "name" : "date",
+      "name" : "hemo_start",
+      "expr" : "effectiveDateTime"
+    },
+    { 
+      "name" : "hemo_end",
       "expr" : "effectiveDateTime"
     },
     { 
@@ -166,9 +174,12 @@ ON
   hema.subject_id = hemo.subject_id
 WHERE
   hema.hema_value < 40
-  AND hemo.hemo_value < 14
-  AND DATE_PART('year', DATE(hemo_end)) > 2015
-  AND DATE_PART('year', DATE(hema_end)) > 2015
+  AND 
+  hemo.hemo_value < 14
+  AND 
+  DATE_PART('year', DATE(hemo_end)) > 2015
+  AND 
+  DATE_PART('year', DATE(hema_end)) > 2015
 ORDER BY
   hema.hema_end desc,
   hemo.hemo_end desc;
@@ -180,12 +191,14 @@ Postgres query
 
 ```sql
 -- Setup an observations table and load ndjson
+
+DROP TABLE IF EXISTS observations;
 CREATE TABLE observations (
   id SERIAL PRIMARY KEY,
   content JSONB NOT NULL
 );
 
-\copy observations(content) from './test-data/Observation-no-narrative.ndjson'
+\copy observations(content) from './test-data/Observation-no-narrative.ndjson';
 
 -- Setup the hemo view, manually converted from the above view definiton
 DROP VIEW IF EXISTS hemo;
@@ -193,28 +206,30 @@ DROP VIEW IF EXISTS hemo;
 CREATE VIEW hemo AS
 SELECT
   content -> 'id' AS id,
-  content -> 'effectiveDateTime' AS effectiveDateTime,
-  (content -> 'code' -> 'coding' -> 0 ->> 'display') AS code_display,
-  (content -> 'code' -> 'coding' -> 0 ->> 'code') AS code_code,
+  (content ->> 'effectiveDateTime') :: TIMESTAMP AS hemo_start,
+  (content ->> 'effectiveDateTime') :: TIMESTAMP AS hemo_end,
+  content -> 'code' -> 'coding' -> 0 ->> 'display' AS code_display,
+  content -> 'code' -> 'coding' -> 0 ->> 'code' AS code_code,
   SPLIT_PART((content -> 'subject' ->> 'reference') :: TEXT, '/', 1) AS subject_type,
   SPLIT_PART((content -> 'subject' ->> 'reference') :: TEXT, '/', 2) AS subject_id,
-  (content -> 'valueQuantity' ->> 'value') as quantity_value
+  content -> 'valueQuantity' ->> 'value' as quantity_value
 FROM observations
-WHERE (content -> 'code' -> 'coding' -> 0 ->> 'code') = '718-7';
+WHERE content -> 'code' -> 'coding' -> 0 ->> 'code' = '718-7';
 
 DROP VIEW IF EXISTS hema;
 
 CREATE VIEW hema AS
 SELECT
   content -> 'id' AS id,
-  content -> 'effectiveDateTime' AS effectiveDateTime,
-  (content -> 'code' -> 'coding' -> 0 ->> 'display') AS code_display,
-  (content -> 'code' -> 'coding' -> 0 ->> 'code') AS code_code,
+  (content ->> 'effectiveDateTime') :: TIMESTAMP AS hema_start,
+  (content ->> 'effectiveDateTime') :: TIMESTAMP AS hema_end,
+  content -> 'code' -> 'coding' -> 0 ->> 'display' AS code_display,
+  content -> 'code' -> 'coding' -> 0 ->> 'code' AS code_code,
   SPLIT_PART((content -> 'subject' ->> 'reference') :: TEXT, '/', 1) AS subject_type,
   SPLIT_PART((content -> 'subject' ->> 'reference') :: TEXT, '/', 2) AS subject_id,
-  (content -> 'valueQuantity' ->> 'value') as quantity_value
+  content -> 'valueQuantity' ->> 'value' as quantity_value
 FROM observations
-WHERE (content -> 'code' -> 'coding' -> 0 ->> 'code') = '4544-3';
+WHERE content -> 'code' -> 'coding' -> 0 ->> 'code' = '4544-3';
 ```
 
 -- Joined & Filtered Query
@@ -224,14 +239,14 @@ SELECT
     t1.id,
     t1.subject_id,
     t1.subject_type,
-    t1.effectiveDateTime,
+    t1.hemo_end,
     t1.code_display,
     t1.quantity_value,
     t2.code_display,
     t2.quantity_value,
     t2.subject_id,
     t2.subject_type,
-    t2.effectiveDateTime
+    t2.hema_end
 FROM
     hemo AS t1
 JOIN
@@ -242,8 +257,12 @@ WHERE
     t1.quantity_value::numeric < 14 
     AND
     t2.quantity_value::numeric < 40
+    AND 
+    DATE_PART('year', hemo_end) > 2015
+    AND 
+    DATE_PART('year', hema_end) > 2015
 ORDER BY
-    t2.effectiveDateTime DESC, t1.effectiveDateTime DESC;
+    t2.hema_end DESC, t1.hemo_end DESC;
 ```
 
 DuckDB Query
@@ -257,7 +276,8 @@ DROP VIEW IF EXISTS hemo;
 CREATE VIEW hemo AS
 SELECT 
     id::VARCHAR AS id,   
-    effectiveDateTime::DATETIME AS effectiveDateTime ,
+    effectiveDateTime::DATETIME AS hemo_start ,
+    effectiveDateTime::DATETIME AS hemo_end ,
     code->'coding'->0->>'display'::VARCHAR AS code_display,
     subject->>'reference'::VARCHAR AS subject_reference,
     SPLIT_PART((subject ->> 'reference') :: TEXT, '/', 1) AS subject_type,
@@ -271,7 +291,8 @@ DROP VIEW IF EXISTS hema;
 CREATE VIEW hema AS
 SELECT 
     id::VARCHAR AS id,   
-    effectiveDateTime::DATETIME AS effectiveDateTime ,
+    effectiveDateTime::DATETIME AS hema_start ,
+    effectiveDateTime::DATETIME AS hema_end ,
     code->'coding'->0->>'display'::VARCHAR AS code_display,
     subject->>'reference'::VARCHAR AS subject_reference,
     SPLIT_PART((subject ->> 'reference') :: TEXT, '/', 1) AS subject_type,
@@ -286,13 +307,14 @@ WHERE code->'coding'->0->>'code' = '4544-3';
 ```sql
 SELECT
     t1.id,
-    t1.subject_reference,
-    t1.effectiveDateTime,
+    t1.subject_id,
+    t1.hemo_end,
     t1.code_display,
     t1.valueQuantity_value,
+    t2.subject_id,
+    t2.hema_end,
     t2.code_display,
-    t2.valueQuantity_value,
-    t2.effectiveDateTime
+    t2.valueQuantity_value
 FROM
     hemo AS t1
 JOIN
@@ -304,9 +326,9 @@ WHERE
     AND
     t2.valueQuantity_value < 40
     AND
-    t1.subject_type = 'Patient'
+    DATE_PART('year', t1.hemo_end) > 2015
     AND
-    t2.subject_type = 'Patient'
+    DATE_PART('year', t2.hema_end) > 2015
 ORDER BY
-    t1.effectiveDateTime DESC, t2.effectiveDateTime DESC;
+    t1.hemo_end DESC, t2.hema_end DESC;
 ```
