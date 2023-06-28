@@ -2,6 +2,8 @@
 
 These Definitons have been written to two standards : Nikolai's (http://142.132.196.32:7777) and Josh's (https://joshuamandel.com/fhir-view-to-array/)
 
+Run the observation-hemo-period.sh shell script to generate effectivePeriod dates for this demo
+
 
 Josh's Syntax (JSON)
 
@@ -200,7 +202,7 @@ CREATE TABLE observations (
   content JSONB NOT NULL
 );
 
-\copy observations(content) from './test-data/Observation-no-narrative.ndjson';
+\copy observations(content) from './test-data/Observation-no-narrative-modified.ndjson';
 
 -- Setup the hemo view, manually converted from the above view definiton
 DROP VIEW IF EXISTS hemo;
@@ -270,7 +272,7 @@ ORDER BY
 DuckDB Query
 
 ```sql
-CREATE TABLE observations AS SELECT * FROM './test-data/Observation-no-narrative.ndjson';
+CREATE TABLE observations AS SELECT * FROM './test-data/Observation-no-narrative-modified.ndjson';
 
 
 DROP VIEW IF EXISTS hemo;
