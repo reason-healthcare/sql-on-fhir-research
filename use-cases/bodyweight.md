@@ -25,8 +25,8 @@ Adding this after the nested select breaks this view
     ,
     { "from" : "valueQuantity.where(unit='kg')",
       "select" : [
-         {"name" : "kg" , "expr" : "value"},
-         {"name" : "lbs", "expr" : "value * %kg_to_lbs"}
+         {"name" : "lbs", "expr" : "value * %kg_to_lbs"},
+         {"name" : "kg" , "expr" : "value"}
       ]
     }
 ```

@@ -5,6 +5,8 @@ These Definitons have been written to two standards : Nikolai's (http://142.132.
 
 Josh's Syntax (JSON)
 
+** getId() is not working for Josh's implementation ** 
+
 ```json
 
 {
@@ -83,11 +85,11 @@ Josh's Syntax (JSON)
     },
     { 
       "name" : "hemo_start",
-      "expr" : "effectiveDateTime"
+      "expr" : "effectivePeriod.start"
     },
     { 
       "name" : "hemo_end",
-      "expr" : "effectiveDateTime"
+      "expr" : "effectivePeriod.end"
     },
     { 
       "name" : "category",
@@ -146,8 +148,8 @@ Nikolai's Syntax (Clojure-like)
  :select
   [
     {:expr "id", :name "id"}
-    {:expr "effectiveDateTime", :name "hemo_start"}
-    {:expr "effectiveDateTime", :name "hemo_end"}
+    {:expr "effectivePeriod.start", :name "hemo_start"}
+    {:expr "effectivePeriod.end", :name "hemo_end"}
     {:expr "code.coding.display", :name "observation"}
     {:expr "category.coding.code", :name "category"}
     {:expr "code.coding.code", :name "code"}
@@ -206,8 +208,8 @@ DROP VIEW IF EXISTS hemo;
 CREATE VIEW hemo AS
 SELECT
   content -> 'id' AS id,
-  (content ->> 'effectiveDateTime') :: TIMESTAMP AS hemo_start,
-  (content ->> 'effectiveDateTime') :: TIMESTAMP AS hemo_end,
+  (content -> 'effectivePeriod' ->> 'start') :: TIMESTAMP AS hemo_start,
+  (content -> 'effectivePeriod' ->> 'end') :: TIMESTAMP AS hemo_end,
   content -> 'code' -> 'coding' -> 0 ->> 'display' AS code_display,
   content -> 'code' -> 'coding' -> 0 ->> 'code' AS code_code,
   SPLIT_PART((content -> 'subject' ->> 'reference') :: TEXT, '/', 1) AS subject_type,
@@ -276,8 +278,8 @@ DROP VIEW IF EXISTS hemo;
 CREATE VIEW hemo AS
 SELECT 
     id::VARCHAR AS id,   
-    effectiveDateTime::DATETIME AS hemo_start ,
-    effectiveDateTime::DATETIME AS hemo_end ,
+    (effectivePeriod->>'start')::TIMESTAMP AS hemo_start ,
+    (effectivePeriod->>'end')::TIMESTAMP AS hemo_end ,
     code->'coding'->0->>'display'::VARCHAR AS code_display,
     subject->>'reference'::VARCHAR AS subject_reference,
     SPLIT_PART((subject ->> 'reference') :: TEXT, '/', 1) AS subject_type,
@@ -286,13 +288,14 @@ SELECT
 FROM observations
 WHERE code->'coding'->0->>'code' = '718-7';
 
+
 DROP VIEW IF EXISTS hema;
 
 CREATE VIEW hema AS
 SELECT 
     id::VARCHAR AS id,   
-    effectiveDateTime::DATETIME AS hema_start ,
-    effectiveDateTime::DATETIME AS hema_end ,
+    effectiveDateTime::TIMESTAMP AS hema_start ,
+    effectiveDateTime::TIMESTAMP AS hema_end ,
     code->'coding'->0->>'display'::VARCHAR AS code_display,
     subject->>'reference'::VARCHAR AS subject_reference,
     SPLIT_PART((subject ->> 'reference') :: TEXT, '/', 1) AS subject_type,
