@@ -55,17 +55,10 @@ function normalize(inputDateTimeStr, field):
 
     if matches(inputDateTimeStr, dateRegex):
         // inputDateTimeStr is already in the form YYYY-MM-DD
-        if field == 'start':
-            return inputDateTimeStr
-        else if field == 'end':
-            return inputDateTimeStr
-    else if matches(inputDateTimeStr, monthRegex):
-        // inputDateTimeStr is in the form YYYY-MM
-        year, month = parse(inputDateTimeStr, monthRegex)
-        if field == 'start':
-            return format(year, month, "01")
-        else if field == 'end':
-            return format(year, month, lastDayOfMonth(year, month))
+        return inputDateTimeStr
+    else if matches(inputDateTimeStr, dateTimeRegex):
+        // inputDateTimeStr is in the form YYYY-MM-DD-HH-mm-ss
+        return inputDateTimeStr
     else if matches(inputDateTimeStr, yearRegex):
         // inputDateTimeStr is in the form YYYY
         year = parse(inputDateTimeStr, yearRegex)
@@ -73,9 +66,13 @@ function normalize(inputDateTimeStr, field):
             return format(year, "01", "01")
         else if field == 'end':
             return format(year, "12", "31")
-    else if matches(inputDateTimeStr, dateTimeRegex):
-        // inputDateTimeStr is in the form YYYY-MM-DD-HH-mm-ss
-        return inputDateTimeStr
+    else if matches(inputDateTimeStr, monthRegex):
+        // inputDateTimeStr is in the form YYYY-MM
+        year, month = parse(inputDateTimeStr, monthRegex)
+        if field == 'start':
+            return format(year, month, "01")
+        else if field == 'end':
+            return format(year, month, lastDayOfMonth(year, month))
     else:
         raise Exception("Invalid date format")
 
