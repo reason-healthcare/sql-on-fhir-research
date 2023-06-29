@@ -5,7 +5,11 @@ EX:
     { 
       "name" : "dateTimeStart",
       "expr" : "effectiveDateTime.normalize('start')"
-    }
+    },
+    { 
+      "name" : "dateTimeEnd",
+      "expr" : "effectiveDateTime.normalize('end')"
+    },
 ```
 
 Pseudocode
