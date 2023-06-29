@@ -16,11 +16,11 @@ Or normalize could deal with chioce types
 ```json
     { 
       "name" : "dateTimeStart",
-      "expr" : "effective.normalize('start')"
+      "expr" : "effective.normalizeDateStart()"
     },
     { 
       "name" : "dateTimeEnd",
-      "expr" : "effective.normalize('end')"
+      "expr" : "effective.normalizeDateEnd()"
     },
 ```
 
