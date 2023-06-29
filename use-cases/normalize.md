@@ -12,7 +12,19 @@ EX:
     },
 ```
 
-Pseudocode
+Or normalize could deal with chioce types
+```json
+    { 
+      "name" : "dateTimeStart",
+      "expr" : "effectiveDateTime.normalize('start')"
+    },
+    { 
+      "name" : "dateTimeEnd",
+      "expr" : "effectiveDateTime.normalize('end')"
+    },
+```
+
+Pseudocode 
 ```
 function isLeapYear(year):
     if year % 4 != 0:
