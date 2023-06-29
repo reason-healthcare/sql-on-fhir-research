@@ -148,8 +148,8 @@ Nikolai's Syntax (Clojure-like)
  :select
   [
     {:expr "id", :name "id"}
-    {:expr "effectivePeriod.start", :name "dateTimeStart"}
-    {:expr "effectivePeriod.end", :name "dateTimeEnd"}
+    {:expr "effectiveDateTime", :name "dateTimeStart"}
+    {:expr "effectiveDateTime", :name "dateTimeEnd"}
     {:expr "code.coding.display", :name "observation"}
     {:expr "category.coding.code", :name "category"}
     {:expr "code.coding.code", :name "code"}
