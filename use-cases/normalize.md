@@ -22,7 +22,19 @@ Or normalize could deal with chioce types
       "name" : "dateTimeEnd",
       "expr" : "effective.normalizeDateEnd()"
     },
+
+    { 
+      "name" : "dateTimeStart",
+      "expr" : "effective.normalize('start')"
+    },
+    { 
+      "name" : "dateTimeEnd",
+      "expr" : "effective.normalize('end')"
+    },
+
 ```
+
+
 
 Pseudocode 
 ```
