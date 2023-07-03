@@ -7,64 +7,66 @@ These Definitons have been written to two standards : Nikolai's (http://142.132.
 {
   "name": "observation_weight",
   "from": "Observation.where(code.coding.exists(system='http://loinc.org' and code = '29463-7')).first()",
-  "constants" : [{"name": "lbs_to_kg" , "value" : 0.453592}],
+  "constants" : [{"name": "lbs_to_kg" , "value" : 0.453592},{"name": "kg_to_lbs" , "value" : 2.20462}],
   "select": [
     { "name": "id", "expr": "id" },
-    { "from" : "valueQuantity.where(unit='lbs')",
-      "select" : [
-         {"name" : "lbs" , "expr" : "value"},
-         {"name" : "kg", "expr" : "value * %lbs_to_kg"}
-      ]
+    { "union" : [
+      { "from" : "valueQuantity.where(unit='lbs')",
+        "select" : [
+          {"name" : "lbs" , "expr" : "value"},
+          {"name" : "kg", "expr" : "value * %lbs_to_kg"}
+        ]
+      },
+      { "from" : "valueQuantity.where(unit='kg')",
+        "select" : [
+          {"name" : "lbs", "expr" : "value * %kg_to_lbs"},
+          {"name" : "kg" , "expr" : "value"}
+        ]
+      }
+     ]
     }
   ]
 }
 ```
 
-Adding this after the nested select breaks this view
-```json
-    ,
-    { "from" : "valueQuantity.where(unit='kg')",
-      "select" : [
-         {"name" : "lbs", "expr" : "value * %kg_to_lbs"},
-         {"name" : "kg" , "expr" : "value"}
-      ]
-    }
-```
-
-also this constant is added 
-```json
-{"name": "kg_to_lbs" , "value" : 2.20462}
-```
-
 Nikolais syntax does not allow for expression mutation?
 
 ```clojure
-{:id "weight_observation",
- :from "Observation",
- :where
- [{:expr
-   "code.coding.where(system='http://loinc.org' and code = '29463-7')"}],
- :select
- [{:expr "id", :name "id"}
-  {:expr "code.coding.display", :name "observation"}
-  {:expr "subject.getId()", :name "subject_id"}
-  {:expr "valueQuantity.value", :name "weight_kg", :type "numeric"}
-]}
-```
-These do not work
-```clojure
-{:expr "valueQuantity.value * 2.2", :name "weight_lbs", :type "numeric"}
-{:expr "valueQuantity.value * %2.2", :name "weight_lbs", :type "numeric"}
-{:expr "valueQuantity.value * '2.2' ", :name "weight_lbs", :type "numeric"}
-{:expr "valueQuantity.value * %'2.2' ", :name "weight_lbs", :type "numeric"}
+{
+  :id "observation_weight",
+  :from "Observation.where(code.coding.exists(system='http://loinc.org' and code='29463-7))",
+  :select [
+    {:name "id" :expr "id"},
+    {:union [
+      {:from "valueQuantity.where(unit='lbs')",
+       :select [
+         {:name "lbs" :expr "value"}
+         {:name "kg" :expr "value * %lbs_to_kg"}
+       ]
+      },
+      {:from "valueQuantity.where(unit='kg')",
+       :select [
+         {:name "lbs" :expr "value * %kg_to_lbs"}
+         {:name "kg" :expr "value"}
+       ]
+      }
+     ]
+    }
+  ],
+  :constants [
+    {:name "lbs_to_kg" :value 0.453592}
+    {:name "kg_to_lbs" :value 2.20462}
+  ]
+}
+
 ```
 
 Simple weight range Query
 ```sql
 SELECT *
-FROM views.weight_observation as weight
-WHERE weight.weight_kg > 50
-AND weight.weight_kg < 100
+FROM views.observation_weight as weight
+WHERE weight.kg > 50
+AND weight.kg < 100
 ```
 
 
@@ -88,11 +90,15 @@ SELECT
   content -> 'code' -> 'coding' -> 0 ->> 'display' AS code_display,
   content -> 'code' -> 'coding' -> 0 ->> 'code' AS code_code,
   SPLIT_PART((content -> 'subject' ->> 'reference') :: TEXT, '/', 2) AS subject_id,
-  content -> 'valueQuantity' ->> 'value' as weight_kg
+  CASE
+    WHEN content -> 'valueQuantity' ->> 'unit' = 'lbs' THEN (obs.content -> 'valueQuantity' ->> 'value')::NUMERIC * 0.453592
+    ELSE (content -> 'valueQuantity' ->> 'value')::NUMERIC
+  END AS weight_kg
 FROM observations
 WHERE content -> 'code' -> 'coding' -> 0 ->> 'code' = '29463-7'
 AND (content -> 'valueQuantity' ->> 'value')::NUMERIC > 50
 AND (content -> 'valueQuantity' ->> 'value')::NUMERIC < 100;
+
 ```
 
 
@@ -106,7 +112,10 @@ SELECT
     code->'coding'->0->>'display'::VARCHAR AS code_display,
     code->'coding'->0->>'code'::VARCHAR AS code_code,
     SPLIT_PART((subject ->> 'reference') :: TEXT, '/', 2) AS subject_id,
-    (valueQuantity->>'value')::NUMERIC AS weight_kg
+    CASE
+      WHEN valueQuantity->>'unit' = 'lbs' THEN CAST(valueQuantity->> 'value' AS FLOAT) * 0.453592
+      ELSE CAST(valueQuantity->> 'value' AS FLOAT)
+    END AS weight_kg
 FROM observations
 WHERE code->'coding'->0->>'code' = '29463-7'
 AND (valueQuantity->>'value')::NUMERIC > 50
