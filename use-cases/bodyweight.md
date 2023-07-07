@@ -1,7 +1,12 @@
 ## This use case demonstrates unit normalization for body weight. 
 
-These Definitons have been written to two standards : Nikolai's (http://142.132.196.32:7777) and Josh's (https://joshuamandel.com/fhir-view-to-array/)
+### These Definitons have been written to two standards : Nikolai's (http://142.132.196.32:7777) and Josh's (https://joshuamandel.com/fhir-view-to-array/)
+&nbsp;
 
+### The goal of this use case is to demonstrate the process of unit normalization for body weight measurements. The use case involves converting weight measurements between pounds (lbs) and kilograms (kg).
+&nbsp;
+
+This example view demonstrates a union operation for weight normalization as well as implementing arithmetic in the expression fields.
 
 ```json
 {
@@ -29,7 +34,7 @@ These Definitons have been written to two standards : Nikolai's (http://142.132.
 }
 ```
 
-Nikolais syntax does not allow for expression mutation?
+This example demonstrates the same query as the example above, but using Nikolai's syntax. It provides an alternative representation of the view with the same functionality.
 
 ```clojure
 {
@@ -61,7 +66,7 @@ Nikolais syntax does not allow for expression mutation?
 
 ```
 
-Simple weight range Query
+This is a simple weight range Query that is based on the view definitions above.
 ```sql
 SELECT *
 FROM views.observation_weight as weight
@@ -71,8 +76,9 @@ AND weight.kg < 100
 
 
 Postgres query
+&nbsp;
 
--- Create a new table to hold the extracted data
+This PostgreSQL example demonstrates the same creation of a view and weight range query while also demonstrating the built in JSON extraction operators
 
 ```sql
 -- Setup an observations table and load ndjson
@@ -103,6 +109,9 @@ AND (content -> 'valueQuantity' ->> 'value')::NUMERIC < 100;
 
 
 DuckDB query
+&nbsp;
+
+A similar query to the one above is created in DuckDB. Notice how the JSON extraction semantics are slightly different.
 
 ```sql
 CREATE TABLE observations AS SELECT * FROM './test-data/Observation-no-narrative.ndjson';

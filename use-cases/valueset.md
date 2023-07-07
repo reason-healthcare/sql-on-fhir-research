@@ -1,3 +1,13 @@
+## This use case demonstrates joining fields based on a LOINC valueset. 
+
+### These Definitons have been written to two standards : Nikolai's (http://142.132.196.32:7777) and Josh's (https://joshuamandel.com/fhir-view-to-array/)
+&nbsp;
+
+### The goal of this use case is to demonstrate the process of joining multiple different codes on a single patient and several different implementations are listed below
+&nbsp;
+
+This example view is an idea on how to preprocess the valueset so that the semantics are simple and straightforward (does not work)
+
 ```clojure
 {
   :id "weight_valueset_union_example",
@@ -11,7 +21,7 @@
   ]
 }
 ```
-
+This example is an attempt to have the code logic within the code.coding.where() method (does not work)
 ```clojure
 {
   :id "weight_observations",
@@ -29,7 +39,7 @@
 }
 
 ```
-
+This example is more of a brute force method in which the union operator is utilized to try and join all of the observations on subject ID (does not work)
 ```clojure
 {
   :id "union_example",
@@ -64,7 +74,7 @@
   ]
 }
 ```
-
+This example is similar to the example above but uses code.coding.where() instead of Observation.where(code.coding.exists())
 ```clojure
 {
   :id "union_example",
@@ -99,8 +109,7 @@
   ]
 }
 ```
-
-Postgresql query
+This PostgreSQL query demonstrates the same union as above while using built in set operations
 ```sql
 
 DROP TABLE IF EXISTS observations;
@@ -124,7 +133,7 @@ WHERE
     (content->'code'->'coding'->0->>'code') IN ('29463-7', '3141-9', '3142-7', '75292-3', '79348-9', '8350-1', '8351-9');
 ```
 
-DuckDB query
+This DuckDB query also demonstrates the same union as above while using built in set operations
 ```sql
 CREATE TABLE observations AS SELECT * FROM './test-data/Observation-no-narrative.ndjson';
 
