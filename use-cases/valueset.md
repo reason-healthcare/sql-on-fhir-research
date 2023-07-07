@@ -49,25 +49,25 @@ This example is more of a brute force method in which the union operator is util
     {:expr "subject.getId()", :name "subject_id"},
     {:union [
       {:from "Observation.where(code.coding.exists(system='http://loinc.org' and code='29463-7'))", 
-       :select [{:expr "valueQuantity.value", :name "kg"}]
+       :select [{:expr "valueQuantity.value", :name "kg"}, {:expr "code.coding.code", :name "code"}]
       },
       {:from "Observation.where(code.coding.exists(system='http://loinc.org' and code='3141-9'))", 
-       :select [{:expr "valueQuantity.value", :name "kg"}]
+       :select [{:expr "valueQuantity.value", :name "kg"}, {:expr "code.coding.code", :name "code"}]
       },
       {:from "Observation.where(code.coding.exists(system='http://loinc.org' and code='3142-7'))", 
-       :select [{:expr "valueQuantity.value", :name "kg"}]
+       :select [{:expr "valueQuantity.value", :name "kg"}, {:expr "code.coding.code", :name "code"}]
       },
       {:from "Observation.where(code.coding.exists(system='http://loinc.org' and code='75292-3'))", 
-       :select [{:expr "valueQuantity.value", :name "kg"}]
+       :select [{:expr "valueQuantity.value", :name "kg"}, {:expr "code.coding.code", :name "code"}]
       },
       {:from "Observation.where(code.coding.exists(system='http://loinc.org' and code='79348-9'))", 
-       :select [{:expr "valueQuantity.value", :name "kg"}]
+       :select [{:expr "valueQuantity.value", :name "kg"}, {:expr "code.coding.code", :name "code"}]
       },
       {:from "Observation.where(code.coding.exists(system='http://loinc.org' and code='8350-1'))", 
-       :select [{:expr "valueQuantity.value", :name "kg"}]
+       :select [{:expr "valueQuantity.value", :name "kg"}, {:expr "code.coding.code", :name "code"}]
       },
       {:from "Observation.where(code.coding.exists(system='http://loinc.org' and code='8351-9'))", 
-       :select [{:expr "valueQuantity.value", :name "kg"}]
+       :select [{:expr "valueQuantity.value", :name "kg"}, {:expr "code.coding.code", :name "code"}]
       }
      ]
     }
