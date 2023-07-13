@@ -36,6 +36,28 @@ FROM (
 ) subquery
 WHERE conditionCode IN (SELECT valueCode::VARCHAR from valueset_codes);
 ```
+This additional query demonstrates how to query a join with patient entries in order to determine the names of the patients with specific conditions for any code in the valueset. A new patient table is created and then joined based on patient id and subject.reference 
+```sql
+CREATE TABLE patient AS SELECT * FROM 'test-data/Patient-no-narrative.ndjson';
+
+SELECT
+  conditionCode,
+  conditionId,
+  subject_id,
+  (patient.name::JSON)->>0->'given'->>1 AS first_name,
+  (patient.name::JSON)->>0->'given'->>0 AS last_name
+FROM (
+  SELECT
+    UNNEST(code.coding).code::VARCHAR as conditionCode,
+    id as conditionId,
+    SPLIT_PART((subject ->> 'reference') :: TEXT, '/', 2) AS subject_id
+  FROM condition
+) subquery
+JOIN
+  patient ON subject_id = patient.id
+WHERE conditionCode IN (SELECT valueCode::VARCHAR from valueset_codes);
+
+```
 We then would like to implement the following logic in the View Layer, and the following examples show how one would go about the implementation.
 
 This example is more of a brute force method in which the union operator is utilized to try and join all of the observations on subject ID. We switched to a bodyweight valueset as there are a reasonably small number of codes and therefore more pertinent to this example. Even people with minimal coding experience can probably tell that the syntax is a bit redundant and is not scalable past a small number of codes.
