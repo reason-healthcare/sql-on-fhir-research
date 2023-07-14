@@ -34,7 +34,7 @@ FROM (
     subject.reference as subject_reference
   FROM condition
 ) 
-WHERE conditionCode IN (SELECT valueCode::VARCHAR from valueset_codes);
+WHERE condition_code IN (SELECT valueCode::VARCHAR from valueset_codes);
 ```
 This additional query demonstrates how to query a join with patient entries in order to determine the names of the patients with specific conditions for any code in the valueset. A new patient table is created and then joined based on patient id and subject.reference 
 ```sql
