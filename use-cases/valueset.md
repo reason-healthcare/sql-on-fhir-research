@@ -24,13 +24,13 @@ CREATE TABLE valueset_codes AS SELECT UNNEST(expansion.contains).code::VARCHAR A
 Run an example query that simply selects all patients with a specific condition, in this case that conditon is Hypertension
 ```sql
 SELECT
-  conditionCode,
-  id,
+  condition_code,
+  condition_id,
   subject_reference
 FROM (
   SELECT
-    UNNEST(code.coding).code::VARCHAR as conditionCode,
-    id,
+    UNNEST(code.coding).code::VARCHAR as condition_code,
+    id AS condition_id,
     subject.reference as subject_reference
   FROM condition
 ) 
@@ -41,21 +41,21 @@ This additional query demonstrates how to query a join with patient entries in o
 CREATE TABLE patient AS SELECT * FROM 'test-data/Patient-no-narrative.ndjson';
 
 SELECT
-  conditionCode,
-  conditionId,
+  condition_code,
+  condition_id,
   subject_id,
   (patient.name::JSON)->>0->'given'->>1 AS first_name,
   (patient.name::JSON)->>0->'given'->>0 AS last_name
 FROM (
   SELECT
-    UNNEST(code.coding).code::VARCHAR as conditionCode,
-    id as conditionId,
+    UNNEST(code.coding).code::VARCHAR as condition_code,
+    id as condition_id,
     SPLIT_PART((subject ->> 'reference') :: TEXT, '/', 2) AS subject_id
   FROM condition
 ) 
 JOIN
   patient ON subject_id = patient.id
-WHERE conditionCode IN (SELECT valueCode::VARCHAR from valueset_codes);
+WHERE condition_code IN (SELECT valueCode::VARCHAR from valueset_codes);
 
 ```
 We then would like to implement the following logic in the View Layer, and the following examples show how one would go about the implementation.
