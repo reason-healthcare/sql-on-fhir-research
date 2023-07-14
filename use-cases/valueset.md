@@ -6,8 +6,6 @@ This proposal aims to improve the flattened FHIR view draft specification by str
 
 We propose the introduction of a new 'valueset' operator, which works in conjunction with the 'exists' function within 'code.coding'. This approach aims to eliminate the non-scalable use of the 'union' operator for matching codes individually. Instead, users can query the entire Valueset at once, resulting in cleaner and more efficient code.
 
-ValueSets are an important FHIR concept that group alike codes and allow for code standardization. In practice, when a user wants patient analytics they would want all codes in the valueset to be queried and standardized for the users dashboard. To that point, this use case demonstrates filtering Condition entries based on a Hypertension ValueSet and shows a related example query. 
-
 The following SQL example uses DuckDB, a columnar DBMS that automatically parses JSON data, making it easier to query specified nested fields.
 
 Load in valueset and condition entries
@@ -36,7 +34,7 @@ FROM (
 ) 
 WHERE condition_code IN (SELECT valueCode::VARCHAR from valueset_codes);
 ```
-This additional query demonstrates how to query a join with patient entries in order to determine the names of the patients with specific conditions for any code in the valueset. A new patient table is created and then joined based on patient id and subject.reference 
+This query demonstrates how to query a join with patient entries in order to determine the names of the patients with specific conditions for any code in the valueset. A new patient table is created and then joined based on patient id and subject.reference 
 ```sql
 CREATE TABLE patient AS SELECT * FROM 'test-data/Patient-no-narrative.ndjson';
 
@@ -58,9 +56,9 @@ JOIN
 WHERE condition_code IN (SELECT valueCode::VARCHAR from valueset_codes);
 
 ```
-We then would like to implement the following logic in the View Layer, and the following examples show how one would go about the implementation.
+We then would like to implement the following logic in the View layer, and the following examples show how one would go about the implementation.
 
-This example is more of a brute force method in which the union operator is utilized to try and join all of the observations on subject ID. We switched to a bodyweight valueset as there are a reasonably small number of codes and therefore more pertinent to this example. Even people with minimal coding experience can probably tell that the syntax is a bit redundant and is not scalable past a small number of codes.
+This example View is more of a brute force method in which the union operator is utilized to try and join all of the observations on subject ID. We switched to a bodyweight valueset as there are a reasonably small number of codes and therefore more pertinent to this example. Even people with minimal coding experience can probably tell that the syntax is a bit redundant and is not scalable past a small number of codes.
 ```clojure
 {
   :id "union_example",
@@ -97,10 +95,7 @@ This example is more of a brute force method in which the union operator is util
 
 ```
 
-
-In the example provided below, the 'valueset' operator is used to find observations where the coding system is 'http://loinc.org' and the valueset is 'LG34372-9'. The query then selects the id, subject id, and the valueQuantity of these matched observations.
-
-Here is an example of a proposed view that can handle observations that may have different codes based on a LOINC Valueset:
+In the example provided below, the proposed 'valueset' operator is used to find observations where the coding system is 'http://loinc.org' and the valueset is 'LG34372-9'. The query then selects the id, subject id, and the valueQuantity of these matched observations.
 
 ```clojure
 {
