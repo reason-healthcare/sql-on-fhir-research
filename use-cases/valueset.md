@@ -95,8 +95,7 @@ This example View is more of a brute force method in which the union operator is
 
 ```
 
-In the example provided below, the proposed 'valueset' operator is used to find observations where the coding system is 'http://loinc.org' and the valueset is 'LG34372-9'. The query then selects the id, subject id, and the valueQuantity of these matched observations.
-
+This example implements the memberOf() FHIRpath function in order to automatically join the Observations based on a valueset expansion.
 ```clojure
 {
   :id "weight_valueset_example",
@@ -104,8 +103,23 @@ In the example provided below, the proposed 'valueset' operator is used to find 
   :select [
     {:expr "id", :name "id"},
     {:expr "subject.getId()", :name "subject_id"},
-    {:from "Observation.where(code.coding.exists(system='http://loinc.org' and valueset='LG34372-9'))",
+    {:from "Observation.where(code.coding.memberOf('https://fhir.loinc.org/valueSet/$expand?url=http://loinc.org/vs/LG34372-9'))",
       :select [{:expr "valueQuantity.value", :name "kg"}]
+    }
+  ]
+}
+```
+
+```json
+{
+  "name": "weight_valueset_example",
+  "from": "Observation",
+  "select": [
+    { "name": "id", "expr": "id" },
+    { "from" : "Observation.where(code.coding.memberOf('https://fhir.loinc.org/valueSet/$expand?url=http://loinc.org/vs/LG34372-9'))",
+      "select" : [
+      {"name" : "kg", "expr" : "valueQuantity.value"}
+      ] 
     }
   ]
 }
