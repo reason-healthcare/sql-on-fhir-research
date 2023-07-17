@@ -13,7 +13,7 @@ Load in valueset and condition entries
 ```sql
 CREATE TABLE valueset AS SELECT * FROM './test-data/ValueSet-2.16.840.1.113883.3.3157.4012.json';
 
-CREATE TABLE condition AS SELECT * FROM 'test-data/Condition-no-narrative.ndjson';
+CREATE TABLE condition AS SELECT * FROM './test-data/Condition-no-narrative.ndjson';
 ```
 Extract valueset codes using duckdb's functional syntax
 ```sql
@@ -36,7 +36,7 @@ WHERE condition_code IN (SELECT valueCode::VARCHAR from valueset_codes);
 ```
 This query demonstrates how to query a join with patient entries in order to determine the names of the patients with specific conditions for any code in the valueset. A new patient table is created and then joined based on patient id and subject.reference 
 ```sql
-CREATE TABLE patient AS SELECT * FROM 'test-data/Patient-no-narrative.ndjson';
+CREATE TABLE patient AS SELECT * FROM './test-data/Patient-no-narrative.ndjson';
 
 SELECT
   condition_code,

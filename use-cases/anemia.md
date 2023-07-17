@@ -2,10 +2,12 @@
 
 These Definitons have been written to two standards : Nikolai's (http://142.132.196.32:7777) and Josh's (https://joshuamandel.com/fhir-view-to-array/)
 
-Run the observation-hemo-period.sh shell script to generate effectivePeriod dates for this demo
+This use case demonstrates the creation of two independent view definitions and having a SQL query join the tables based upon Subject ID. The equivalent Data tables are also created in PostgreSQL and DuckDB in order to display the utility of choosing to create a view definition over writing the native SQL.
+
+This use case also demonstrates how to normalize different date related FHIR objects into a start and end date in order to have more efficient date related queries. One should run the observation-hemo-period.sh shell script to generate effectivePeriod dates for this demo
 
 
-Josh's Syntax (JSON)
+The following view definitions use Josh's Syntax and extract Observation ID, Subject ID, Start and End Date, value, and Loinc code from the ndjson Observation Data.
 
 ```json
 
@@ -116,7 +118,7 @@ Josh's Syntax (JSON)
 }
 ```
 
-Nikolai's Syntax (Clojure-like)
+The following view definitions are exactly the same as the ones above but use Nikolai's Syntax 
 ```clojure
 {
  :id "hematocrit_observation",
@@ -159,7 +161,7 @@ Nikolai's Syntax (Clojure-like)
 }
 ```
 
-ANSI standard query
+This is a SQL query that utilizes the view definitions created above. It filters based upon critical hemoglobin and hematocrit values as well as filtering past a certain date.
 
 ```sql
 SELECT
@@ -187,12 +189,9 @@ ORDER BY
   hemo.dateTimeEnd desc;
 ```
 
-Postgres query
-
--- Create a new table to hold the extracted data
+This is an equivalent implementation of the view definitions above in Postgres SQL. Notice how the semantics and syntax are more involved than the straightforward view implementation.
 
 ```sql
--- Setup an observations table and load ndjson
 
 DROP TABLE IF EXISTS observations;
 CREATE TABLE observations (
@@ -202,7 +201,6 @@ CREATE TABLE observations (
 
 \copy observations(content) from './test-data/Observation-no-narrative-modified.ndjson';
 
--- Setup the hemo view, manually converted from the above view definiton
 DROP VIEW IF EXISTS hemo;
 
 CREATE VIEW hemo AS
@@ -234,7 +232,7 @@ FROM observations
 WHERE content -> 'code' -> 'coding' -> 0 ->> 'code' = '4544-3';
 ```
 
--- Joined & Filtered Query
+-- Join & Filter Statement
 
 ```sql
 SELECT
@@ -267,7 +265,7 @@ ORDER BY
     t2.dateTimeEnd DESC, t1.dateTimeEnd DESC;
 ```
 
-DuckDB Query
+We also implement the views in DuckDB to show a columnar SQL implementation in addition to the row SQL (Postgres) implementation. 
 
 ```sql
 CREATE TABLE observations AS SELECT * FROM './test-data/Observation-no-narrative-modified.ndjson';
@@ -305,7 +303,7 @@ FROM observations
 WHERE code->'coding'->0->>'code' = '4544-3';
 ```
 
--- Join statement
+-- Join & Filter statement
 
 ```sql
 SELECT
