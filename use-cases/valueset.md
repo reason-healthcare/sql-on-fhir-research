@@ -109,18 +109,20 @@ This example implements the memberOf() FHIRpath function in order to automatical
   ]
 }
 ```
+This example uses DuckDB to query all data from the valueset JSON object and returns the results in a SELECT statement
+```sql
+CREATE TABLE valueSet AS SELECT * FROM '/Users/user/Desktop/sql_on_fhir_research/test-data/ValueSet-2.16.840.1.113883.3.3157.4012.json';
 
-```json
-{
-  "name": "weight_valueset_example",
-  "from": "Observation",
-  "select": [
-    { "name": "id", "expr": "id" },
-    { "from" : "Observation.where(code.coding.memberOf('https://fhir.loinc.org/valueSet/$expand?url=http://loinc.org/vs/LG34372-9'))",
-      "select" : [
-      {"name" : "kg", "expr" : "valueQuantity.value"}
-      ] 
-    }
-  ]
-}
+CREATE TABLE valueSetCodeData AS
+SELECT 
+  valueSetData.system AS valueset_system,
+  valueSetData.version AS valueset_version,
+  valueSetData.code::VARCHAR AS valueset_code,
+  valueSetData.display AS valueset_display
+FROM (
+  SELECT UNNEST(valueSet.expansion.contains) AS valueSetData
+  FROM valueSet
+);
+
+SELECT * FROM valueSetCodeData;
 ```
