@@ -141,7 +141,7 @@ CREATE TABLE valueSet (
 SELECT 
     (value->>'system') AS system,
     (value->>'version') AS version,
-    (value->>'code') AS code,
+    (value->>'code')::VARCHAR AS code,
     (value->>'display') AS display
 FROM 
     valueSet, 
