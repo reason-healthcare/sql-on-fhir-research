@@ -110,6 +110,8 @@ This example implements the memberOf() FHIRpath function in order to automatical
 }
 ```
 This example uses DuckDB to query all data from the valueset JSON object and returns the results in a SELECT statement
+
+DuckDB
 ```sql
 CREATE TABLE valueSet AS SELECT * FROM '/Users/user/Desktop/sql_on_fhir_research/test-data/ValueSet-2.16.840.1.113883.3.3157.4012.json';
 
@@ -125,4 +127,23 @@ FROM (
 );
 
 SELECT * FROM valueSetCodeData;
+```
+PostgreSQL
+```sql
+DROP TABLE IF EXISTS valueSet;
+CREATE TABLE valueSet (
+  id SERIAL PRIMARY KEY,
+  content JSONB NOT NULL
+);
+
+\copy valueSet(content) from '/Users/user/Desktop/sql_on_fhir_research/test-data/ValueSet.ndjson';
+
+SELECT 
+    (value->>'system') AS system,
+    (value->>'version') AS version,
+    (value->>'code') AS code,
+    (value->>'display') AS display
+FROM 
+    valueSet, 
+    jsonb_array_elements((content->'expansion.contains')::jsonb) AS value;
 ```
